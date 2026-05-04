@@ -20,6 +20,4 @@ result = (
     .split(keepBottom=True,keepTop=False)
 )
 
-
 show_object(result)
-
