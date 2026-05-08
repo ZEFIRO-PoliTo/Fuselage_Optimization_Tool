@@ -92,6 +92,8 @@ propeller_nose = (
     .close()
     .revolve(360.0, (0,0), (1, 0))    # Faccio ruotare intorno all'asse X
    )
+
+prova
    
 result = loft.union(propeller_nose)
 show_object(result)
