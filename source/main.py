@@ -1,7 +1,9 @@
 import cadquery as cq
 
 percorso_file = 'Airspeeder_Mk3_proxy_simplified.step'
-x_taglio = 1300.0 
+variazione_sezioni=100                    #distanza tra le due sezioni
+x_taglio = 1300.0-variazione_sezioni
+x_taglio2 = x_taglio+variazione_sezioni
 #credo prenda come 0 dell'asse x il centro del solido
 # ma non ho ancora ben cpito il perchè 
 
@@ -12,33 +14,39 @@ corpo_importato = (
     # Rotazione di 90° su asse Z
     .rotate((0,0,0), (0,0,1), 90)
 ) 
+def FacciaLoft(corpo_importato,x_taglio):
+    scocca = (
+        cq.Workplane('YZ')
+        # Aggiungo il mio corpo importato al workplane
+        # I comandi .solids() e .vals() si assicurano che CadQuery lo registri come un solido
+        .add(corpo_importato.solids().vals()) 
+        # Creo un piano di lavoro dove voglio effettuare il taglio
+        .workplane(offset=x_taglio)  
+        # Taglio il solido conservando solo la parte inferiore al piano           
+        .split(keepBottom=True,keepTop=False)
+    )
+    
+    # Selezione la faccia da cui far partire il loft
+    faccia_loft = (
+        scocca
+        .faces('>X')
+    )
+    
+    # Creo una variabile che contenga il contorno della mia faccia
+    contorno_loft = faccia_loft.val().outerWire()
+    return contorno_loft,faccia_loft
 
-scocca = (
-    cq.Workplane('YZ')
-    # Aggiungo il mio corpo importato al workplane
-    # I comandi .solids() e .vals() si assicurano che CadQuery lo registri come un solido
-    .add(corpo_importato.solids().vals()) 
-    # Creo un piano di lavoro dove voglio effettuare il taglio
-    .workplane(offset=x_taglio)  
-    # Taglio il solido conservando solo la parte inferiore al piano           
-    .split(keepBottom=True,keepTop=False)
-)
+#assegno delle variabili ai risultati della funzione Faccia_loft per non eseguirla più volte nel codice
+contorno_loft,faccia_loft=FacciaLoft(corpo_importato,x_taglio)
+contorno_loft2=FacciaLoft(corpo_importato,x_taglio2)[0]
 
-# Selezione la faccia da cui far partire il loft
-faccia_loft = (
-    scocca
-    .faces('>X')
-)
-
-# Creo una variabile che contenga il contorno della mia faccia
-contorno_loft = faccia_loft.val().outerWire()
 
 offset_z = -135       # Serve a centrare i cerchi per creare il loft
 
 # Caratteristiche del cono di punta
 raggio_base = 220.0
 raggio_cima = 150.0
-altezza_tot = 250.0
+altezza_tot = 110.0
 altezza_punta = 140.0
 angolo_punta = 0 # Ancora da implementare
 loft = (
@@ -47,10 +55,19 @@ loft = (
     .add(contorno_loft)           #aggiungo il perimetro della faccia al workplane
     .toPending()                  # Indico che questo perimetro è il primo da usare per il loft
     
-    .workplane(offset=120)        # Creo il secondo piano parallelo
+    .workplane()                  # Creo il secondo piano parallelo derivato dalla sezione 
+    .add(contorno_loft2) 
+#maggiore è il numero delle sezioni maggiore è la precisione dell'attacco tra corpo e punta
+#inoltre la precisione è anche variata dalla "variazione_sezioni" (riga 4)
+
+    .workplane(offset=120)        # Creo il terzo piano parallelo
     .moveTo(0,offset_z)           # Serve a centrare il cerchio lungo z
      # Sarebbe bello trovare un modo per centrarlo indipendentemente dall'oggetto
     .circle(raggio_base)                  # Secondo profilo guida del loft
+
+    .workplane(offset=altezza_punta)      # Creo il quarto piano parallelo per allineare la tangenza
+    .moveTo(0,offset_z)                   # Serve a centrare il cerchio lungo z
+    .circle(raggio_cima)
 
     .loft(combine=True)
 )
@@ -67,10 +84,7 @@ propeller_nose = (
     cq.Workplane("XZ")    # Disegno il profilo del cono di punta
     # Sposto l'origine del mio workplane al centro del cerchio
     .center(centro_punta.x, centro_punta.z) 
-    .polyline([(0, 0),   
-               (0, raggio_base), 
-               (altezza_punta, raggio_cima)])
-    .spline([(altezza_punta, raggio_cima),
+    .spline([(0, raggio_cima),
              (altezza_tot, 0)], 
             tangents=[(altezza_punta, raggio_cima-raggio_base),
                       (-1,0.6)])  # Da qui posso modificare la tangenza sulla punta
