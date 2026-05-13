@@ -16,7 +16,9 @@ corpo_importato = (
     .rotate((0,0,0), (1,0,0), 90)
     # Rotazione di 90° su asse Z
     .rotate((0,0,0), (0,0,1), 90)
+    #centro rispetto l'asse asse X
     .translate((0, 0, 135))
+    #Sarebbe bello trovare un modo per centrarlo indipendentemente dall'oggetto
 ) 
 
 def Superellisse(raggio_y, raggio_z, potenza, num_punti):   
@@ -73,9 +75,6 @@ def FacciaLoft(corpo_importato,x_taglio):
 contorno_loft,faccia_loft=FacciaLoft(corpo_importato,x_taglio)
 contorno_loft2=FacciaLoft(corpo_importato,x_taglio2)[0]
 
-
-offset_z = -135       # Serve a centrare i cerchi per creare il loft
-
 # Caratteristiche del cono di punta
 raggio_base = 220.0
 raggio_cima = 150.0
@@ -94,12 +93,9 @@ loft = (
 #inoltre la precisione è anche variata dalla "variazione_sezioni" (riga 4)
 
     .workplane(offset=120)        # Creo il terzo piano parallelo
-    .moveTo(0,offset_z)           # Serve a centrare il cerchio lungo z
-     # Sarebbe bello trovare un modo per centrarlo indipendentemente dall'oggetto
     .circle(raggio_base)                  # Secondo profilo guida del loft
 
     .workplane(offset=altezza_punta)      # Creo il quarto piano parallelo per allineare la tangenza
-    .moveTo(0,offset_z)                   # Serve a centrare il cerchio lungo z
     .circle(raggio_cima)
 
     .loft(combine=True)
