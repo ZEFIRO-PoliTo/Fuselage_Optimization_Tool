@@ -16,6 +16,7 @@ corpo_importato = (
     .rotate((0,0,0), (1,0,0), 90)
     # Rotazione di 90° su asse Z
     .rotate((0,0,0), (0,0,1), 90)
+    .translate((0, 0, 135))
 ) 
 
 def Superellisse(raggio_y, raggio_z, potenza, num_punti):   
