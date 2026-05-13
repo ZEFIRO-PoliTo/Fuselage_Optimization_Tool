@@ -18,15 +18,17 @@ corpo_importato = (
     .rotate((0,0,0), (0,0,1), 90)
 ) 
 
-def Superellisse(a,b,n,num_punti):
+def Superellisse(raggio_y, raggio_z, potenza, num_punti):   
+    # raggio_y = 100 significa che si estende da y=-100 a y=+100, stessa cosa per raggio_z, mentre n è la potenza: 2=cerchio, >2 = più squadrata
+    
     # Generazione punti
     punti = []
     for i in range(num_punti):
         t = 2 * math.pi * i / num_punti
         cos_t = math.cos(t)
         sin_t = math.sin(t)
-        y = math.copysign(pow(abs(cos_t), 2/n), cos_t) * a
-        z = math.copysign(pow(abs(sin_t), 2/n), sin_t) * b
+        y = math.copysign(pow(abs(cos_t), 2/potenza), cos_t) * raggio_y
+        z = math.copysign(pow(abs(sin_t), 2/potenza), sin_t) * raggio_z
         punti.append((y, z))
 
     # Crea lo spline periodico
