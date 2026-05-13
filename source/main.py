@@ -1,4 +1,7 @@
 import cadquery as cq
+from cadquery import Face, Wire
+from cadquery.occ_impl.shapes import Edge
+import math
 
 percorso_file = 'Airspeeder_Mk3_proxy_simplified.step'
 variazione_sezioni=100                    #distanza tra le due sezioni
@@ -14,6 +17,33 @@ corpo_importato = (
     # Rotazione di 90° su asse Z
     .rotate((0,0,0), (0,0,1), 90)
 ) 
+
+def Superellisse(a,b,n,num_punti):
+    # Generazione punti
+    punti = []
+    for i in range(num_punti):
+        t = 2 * math.pi * i / num_punti
+        cos_t = math.cos(t)
+        sin_t = math.sin(t)
+        y = math.copysign(pow(abs(cos_t), 2/n), cos_t) * a
+        z = math.copysign(pow(abs(sin_t), 2/n), sin_t) * b
+        punti.append((y, z))
+
+    # Crea lo spline periodico
+    spline_obj = (
+        cq.Workplane("YZ")
+        .spline(punti, periodic=True, includeCurrent=False)
+        .val()
+    )
+
+    # Converte in Wire (credo)
+    if isinstance(spline_obj, Edge):
+        anello = Wire.assembleEdges([spline_obj])
+    else:
+        anello = spline_obj
+
+    return anello
+    
 def FacciaLoft(corpo_importato,x_taglio):
     scocca = (
         cq.Workplane('YZ')
