@@ -46,8 +46,10 @@ def Superellisse(raggio_y, raggio_z, potenza, num_punti):
         anello = Wire.assembleEdges([spline_obj])
     else:
         anello = spline_obj
-
-    return anello
+        
+    # Costruisce la faccia
+    faccia_geo = Face.makeFromWires(anello, [])
+    return faccia_geo
     
 def FacciaLoft(corpo_importato,x_taglio):
     scocca = (
